@@ -28,5 +28,11 @@
         "author": "Frank Herbert",
         "price": 18.0,
         "quantity in stock": 20
+    },
+    "1234567890123": {
+        "title": "asd",
+        "author": "asd",
+        "price": "123.33",
+        "quantity in stock": "12"
     }
 }
