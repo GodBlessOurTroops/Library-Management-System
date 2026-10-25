@@ -89,6 +89,44 @@ def open_addBook_window():
     return library
 
 
+def open_quantity_window():
+        layout = [
+         [sg.Text("Enter an ISBN:")],
+         [sg.Input(default_text="", key = '-ISBN_INPUT-')],
+         [sg.Text("Enter the desired quantity in stock:")],
+         [sg.Input(default_text="", key= '-STOCK_INPUT-')],
+         [sg.Button("Save")],
+        ]
+        quantityWindow=sg.Window("Edit the quantity",layout, modal=True)
+        while True:
+            event, values = quantityWindow.read()
+            if event == sg.WIN_CLOSED or event == "Close Window 2":
+                break             
+            if event == "Save":
+                raw_ISBN = values["-ISBN_INPUT-"]
+                raw_Stock= values["-STOCK_INPUT-"]
+                errors=[]
+                if raw_ISBN not in library:
+                    errors.append("Such book does not exist!")
+                if not raw_Stock:
+                      errors.append("Stock cant be empty.\n")
+                elif raw_Stock.isdigit() == False:
+                      errors.append("Stock must be an integer.\n")
+                else:
+                    stock_amount = int(raw_Stock)
+                    if stock_amount < 0:
+                        errors.append("Stock must be a positive integer.\n")
+                if errors:
+                    sg.popup_error("\n".join(errors), title="Error.")
+                else:
+                    library[raw_ISBN]["quantity in stock"] = raw_Stock
+                    sg.popup("Quantity changed successfully.")
+                    break
+        quantityWindow.close()
+        return library
+
+
+
 table_data = [[isbn, item['title'], item['author'], item['price'], item['quantity in stock']] for isbn, item in library.items()]
 
 # ---------- 1. LAYOUT ----------
@@ -111,6 +149,7 @@ layout = [
                 justification="left",
                 expand_x=True,            # <--- Fills horizontal space
                 expand_y=True,
+                select_mode=sg.TABLE_SELECT_MODE_EXTENDED,
             )
     ]
 ]
@@ -132,6 +171,28 @@ while True:
          open_addBook_window()
 
          table_data = [[isbn, item['title'], item['author'], item['price'], item['quantity in stock']] for isbn, item in library.items()]
+
+    if event == "Delete":
+        selected_rows = values['-TABLE-']
+
+        if selected_rows:
+
+            keys_list = list(library.keys())
+
+            key_to_delete = [keys_list[row_index] for row_index in selected_rows]
+
+            for key in key_to_delete:
+                del library[key]
+
+            table_data = [[isbn, item['title'], item['author'], item['price'], item['quantity in stock']] for isbn, item in library.items()]
+
+        else:
+            sg.popup("Choose a row first.")
+
+    if event == "Change book quantity":
+        open_quantity_window()
+        table_data = [[isbn, item['title'], item['author'], item['price'], item['quantity in stock']] for isbn, item in library.items()]
+        
 
 
     window['-TABLE-'].update(values=table_data)
