@@ -125,6 +125,54 @@ def open_quantity_window():
         quantityWindow.close()
         return library
 
+def open_search_window():
+    table_data_search = [[isbn, item['title'], item['author'], item['price'], item['quantity in stock']] for isbn, item in library.items()]
+
+    layout = [
+        [sg.Text("Input ISBN, Author or Title:"),
+        sg.Input(default_text="", key= '-SEARCH_INPUT-'),
+        sg.Button("Search"),
+        [sg.Table( values=table_data_search, 
+                headings=["ISBN", "TITLE", "AUTHOR", "PRICE", "STOCK"],
+                key = "-TABLE_SEARCH-",
+                num_rows=25,              # Shows 25 rows before scrolling
+                auto_size_columns=False,  # Turn off so we can control width
+                col_widths=[15, 25, 20, 8, 8], # Give columns proper widths
+                justification="left",
+                expand_x=True,            # <--- Fills horizontal space
+                expand_y=True,
+                                )
+            ]
+        ]
+    ]
+    SearchWindow = sg.Window("Search",layout, modal=True)
+    while True:
+            event, values = SearchWindow.read()
+            if event == sg.WIN_CLOSED or event == "Close Window 2":
+                break
+            if event == "Search":
+                raw_Input = values["-SEARCH_INPUT-"].strip().lower()
+                filtered_data= []
+            for isbn, item in library.items():
+                if (raw_Input in isbn.lower() or 
+                    raw_Input in item['title'].lower() or
+                    raw_Input in item['author'].lower()):
+                    filtered_data.append([
+                        isbn, 
+                        item['title'], 
+                        item['author'], 
+                        item['price'], 
+                        item['quantity in stock']
+                    ])
+
+
+            if not raw_Input:
+                table_data_search = [[isbn, item['title'], item['author'], item['price'], item['quantity in stock']] for isbn, item in library.items()]
+
+                
+            SearchWindow['-TABLE_SEARCH-'].update(values=filtered_data)
+    SearchWindow.close()
+
 
 
 table_data = [[isbn, item['title'], item['author'], item['price'], item['quantity in stock']] for isbn, item in library.items()]
@@ -133,14 +181,11 @@ table_data = [[isbn, item['title'], item['author'], item['price'], item['quantit
 # A layout is a list of "rows"; each row is a list of widgets.
 layout = [
     [sg.Button("Add a book"), 
-     sg.Button("Search by ISBN"), 
-     sg.Button("Search by Author, Title"), 
      sg.Button("Change book quantity"), 
-     sg.Button("Delete")],
+     sg.Button("Delete"),
+     sg.Button("Search by ISBN, Author, Title")],
 
-    [sg.Text("Library:")],
-
-    [sg.Table(  values=table_data, 
+[sg.Table(      values=table_data, 
                 headings=["ISBN", "TITLE", "AUTHOR", "PRICE", "STOCK"],
                 key = "-TABLE-",
                 num_rows=25,              # Shows 25 rows before scrolling
@@ -153,6 +198,7 @@ layout = [
             )
     ]
 ]
+
 # ---------- 2. WINDOW ---------
 window = sg.Window("Library management system", layout)
 
@@ -192,8 +238,9 @@ while True:
     if event == "Change book quantity":
         open_quantity_window()
         table_data = [[isbn, item['title'], item['author'], item['price'], item['quantity in stock']] for isbn, item in library.items()]
-        
 
+    if event == "Search by ISBN, Author, Title":
+        open_search_window()
 
     window['-TABLE-'].update(values=table_data)
 
